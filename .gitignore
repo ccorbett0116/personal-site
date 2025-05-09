@@ -1,0 +1,25 @@
+# Node modules and lockfiles
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Build output
+.out/
+out/
+.next/
+build/
+
+# Local environment files
+.env*
+.env.local
+
+# VS Code + JetBrains IDEs
+.vscode/
+.idea/
+
+# Deployment output (overwritten by export)
+public/
+
+# MacOS / system files
+.DS_Store
+Thumbs.db
