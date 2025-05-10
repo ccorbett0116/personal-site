@@ -12,6 +12,7 @@ export default function Home() {
             <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
                 <h1>Welcome to colecorbett.ca</h1>
                 <p>This site is automatically deployed from GitHub via Alpine Linux, NGINX, and Next.js</p>
+                <p>Python pushed me!</p>
                 <p>Uptime: 100% (probably)</p>
                 <p><a href="/docs">Check out the docs</a></p>
             </main>
