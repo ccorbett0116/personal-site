@@ -14,7 +14,6 @@ export default function Home() {
                 <p>This site is automatically deployed from GitHub via Alpine Linux, NGINX, and Next.js</p>
                 <p>Python pushed me again!</p>
                 <p>Uptime: 100% (probably)</p>
-                <p><a href="/docs">Check out the docs</a></p>
             </main>
         </>
     )
