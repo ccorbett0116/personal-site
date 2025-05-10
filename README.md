@@ -41,5 +41,3 @@ This repository contains the source code for my personal portfolio, built with N
 - ✅ IP address hidden from public DNS
 
 ---
-
-## 🛠️ Local Development
