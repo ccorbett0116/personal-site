@@ -8,8 +8,13 @@ CURRENT_COMMIT_FILE="$LIVE_DIR/.deployed-commit"
 
 # Prevent overlapping runs
 if [ -e "$LOCKFILE" ]; then
-    echo "[DEPLOY] Already running, exiting."
-    exit 1
+    if ! pgrep -f deploy.sh > /dev/null; then
+        echo "[DEPLOY] Stale lockfile found — removing."
+        rm -f "$LOCKFILE"
+    else
+        echo "[DEPLOY] Already running, exiting."
+        exit 1
+    fi
 fi
 trap 'rm -f "$LOCKFILE"' EXIT
 touch "$LOCKFILE"
