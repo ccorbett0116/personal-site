@@ -56,3 +56,8 @@ This repository contains the source code for my personal portfolio, built with N
 
 ## TODO:
 - Website updates can briefly cause the website to go down. Fix this.
+
+---
+
+## Personal Note:
+- Steps to add subdomain: add unproxied cloudflare domain, ./add-subdomain.sh <subdomain>, proxy cloudflare.
