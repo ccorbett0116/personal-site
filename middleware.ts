@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 const MAIN_DOMAIN = 'colecorbett.ca';
 const REDIRECT_MAP: Record<string, string> = {
   '/projects': 'projects',
-  '/test': 'test',
-  '/test2': 'test2',
 };
 
 export function middleware(request: NextRequest) {
