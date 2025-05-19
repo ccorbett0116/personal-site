@@ -14,16 +14,18 @@ export default function Custom404() {
           width: '100vw',
           margin: 0,
           padding: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#000',
+          overflow: 'hidden',
         }}
       >
         <img
           src="/404Page.png"
           alt="404 Not Found"
-          style={{ maxWidth: '100%', maxHeight: '100%' }}
+          style={{
+            width: '100vw',
+            height: '100vh',
+            objectFit: 'cover',
+            display: 'block',
+          }}
         />
       </div>
     </>
