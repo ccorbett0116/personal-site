@@ -32,6 +32,5 @@ export function middleware(request: NextRequest) {
   return NextResponse.rewrite(url);
 }
 
-
   return NextResponse.next();
 }
