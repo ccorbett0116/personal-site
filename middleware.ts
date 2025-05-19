@@ -1,45 +1,31 @@
-// /srv/personal-site/middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-const MAIN_DOMAIN = 'colecorbett.ca'
-
-// Add more subdomains and their base paths here
-const SUBDOMAIN_MAP: Record<string, string> = {
-  'projects': '/projects',
-}
+const MAIN_DOMAIN = 'colecorbett.ca';
+const VALID_SUBDOMAINS: Record<string, string> = {
+  projects: '/projects',
+};
 
 export function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host')?.toLowerCase() || ''
-  const url = request.nextUrl
+  const hostname = request.headers.get('host') || '';
+  const url = request.nextUrl.clone();
 
-  // Extract subdomain (e.g., 'projects' from 'projects.colecorbett.ca')
+  const isMainDomain = hostname === MAIN_DOMAIN || hostname === `www.${MAIN_DOMAIN}`;
   const subdomain = hostname.endsWith(`.${MAIN_DOMAIN}`)
-    ? hostname.split(`.${MAIN_DOMAIN}`)[0]
-    : null
+    ? hostname.replace(`.${MAIN_DOMAIN}`, '')
+    : null;
 
-  const isRootDomain = hostname === MAIN_DOMAIN
-
-  // Handle rewrite for valid subdomains
-  if (subdomain && subdomain in SUBDOMAIN_MAP) {
-    const basePath = SUBDOMAIN_MAP[subdomain]
-    if (!url.pathname.startsWith(basePath)) {
-      url.pathname = `${basePath}${url.pathname}`
-      return NextResponse.rewrite(url)
-    }
+  // Redirect from colecorbett.ca/projects to projects.colecorbett.ca
+  if (isMainDomain && url.pathname.startsWith('/projects')) {
+    const subdomainUrl = `https://projects.${MAIN_DOMAIN}${url.pathname}`;
+    return NextResponse.redirect(subdomainUrl, 301);
   }
 
-  // Handle redirect from root domain paths to correct subdomains
-  if (isRootDomain) {
-    for (const [sub, basePath] of Object.entries(SUBDOMAIN_MAP)) {
-      if (url.pathname.startsWith(basePath)) {
-        const cleanedPath = url.pathname.replace(basePath, '') || '/'
-        const redirectUrl = new URL(`https://${sub}.${MAIN_DOMAIN}${cleanedPath}`)
-        redirectUrl.search = url.search
-        return NextResponse.redirect(redirectUrl, 308)
-      }
-    }
+  // Rewrite subdomain (e.g., projects.colecorbett.ca) to internal route
+  if (subdomain && subdomain in VALID_SUBDOMAINS) {
+    url.pathname = VALID_SUBDOMAINS[subdomain] + url.pathname;
+    return NextResponse.rewrite(url);
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
+0
