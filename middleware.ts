@@ -13,6 +13,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect colecorbett.ca/projects to projects.colecorbett.ca
+  
   if (
     hostname === 'colecorbett.ca' &&
     url.pathname.startsWith('/projects')
