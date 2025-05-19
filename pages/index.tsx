@@ -1,28 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
-import { loadFull } from "tsparticles";
-import type { Engine } from "tsparticles-engine";
+import { Engine } from "@tsparticles/engine"; // Correct Engine import
+import { loadSlim } from "@tsparticles/slim";
 import { useControls, Leva } from "leva";
 
 export default function ParticlesBackground() {
   const [engineLoaded, setEngineLoaded] = useState(false);
 
-  // Live controls for particle physics and colors
-  const {
-    particleCount,
-    particleSpeed,
-    bounce,
-    gravity,
-    minSize,
-    maxSize,
-    hueMin,
-    hueMax,
-    satMin,
-    satMax,
-    lightMin,
-    lightMax
-  } = useControls("Particles", {
+  // Live controls
+  const controls = useControls("Particles", {
     particleCount: { value: 100, min: 10, max: 500, step: 1 },
     particleSpeed: { value: 2, min: 0.1, max: 10, step: 0.1 },
     bounce: { value: 1, min: 0, max: 2, step: 0.1 },
@@ -37,60 +24,83 @@ export default function ParticlesBackground() {
     lightMax: { value: 80, min: 0, max: 100, step: 1 }
   });
 
-  // Initialize tsParticles engine once on mount
+  // Initialize particles engine
   useEffect(() => {
     initParticlesEngine(async (engine: Engine) => {
-      await loadFull(engine);
+      await loadSlim(engine);
     }).then(() => setEngineLoaded(true));
   }, []);
 
-  // Particle configuration bound to controls
-  const options = {
+  // Dynamic options configuration
+  const options: any = {
     fullScreen: { enable: true, zIndex: -1 },
     background: { color: "#000" },
     fpsLimit: 60,
     particles: {
-      number: { value: particleCount, density: { enable: true, area: 800 } },
+      number: {
+        value: controls.particleCount,
+        density: { enable: true, area: 800 }
+      },
       color: {
         value: {
-          h: { min: hueMin, max: hueMax },
-          s: { min: satMin, max: satMax },
-          l: { min: lightMin, max: lightMax }
+          h: { min: controls.hueMin, max: controls.hueMax },
+          s: { min: controls.satMin, max: controls.satMax },
+          l: { min: controls.lightMin, max: controls.lightMax }
         }
       },
       shape: { type: "circle" },
       opacity: { value: 0.8, random: { enable: true, minimumValue: 0.3 } },
-      size: { value: { min: minSize, max: maxSize }, random: true },
+      size: {
+        value: {
+          min: controls.minSize,
+          max: controls.maxSize
+        },
+        random: true
+      },
       move: {
         enable: true,
-        speed: particleSpeed,
+        speed: controls.particleSpeed,
         direction: "none",
         random: true,
         straight: false,
         outModes: { default: "bounce" },
-        gravity: { enable: gravity > 0, acceleration: gravity }
+        gravity: {
+          enable: controls.gravity > 0,
+          acceleration: controls.gravity
+        }
       },
-      collisions: { enable: true }
+      collisions: {
+        enable: true,
+        bounce: {
+          horizontal: {
+            value: controls.bounce
+          },
+          vertical: {
+            value: controls.bounce
+          }
+        }
+      }
     },
     interactivity: {
-      detectsOn: "canvas",
+      detectsOn: "window",
       events: {
         onHover: { enable: true, mode: "repulse" },
         onClick: { enable: true, mode: "push" }
       },
-      modes: { repulse: { distance: 100, speed: 0.8 }, push: { quantity: 4 } }
+      modes: {
+        repulse: { distance: 100, speed: 0.8 },
+        push: { quantity: 4 }
+      }
     },
     detectRetina: true
   };
 
   return (
       <>
-        {/* Leva control panel */}
         <div className="fixed top-4 right-4 z-20 p-2 bg-black/50 rounded">
           <Leva collapsed={false} />
         </div>
 
-        {/* Render particles once engine is ready */}
         {engineLoaded && <Particles id="tsparticles" options={options} />}
       </>
   );
