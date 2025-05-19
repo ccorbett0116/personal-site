@@ -1,70 +1,97 @@
-import { motion } from 'framer-motion';
-import Head from 'next/head';
+"use client";
+import { useEffect, useState } from "react";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { loadFull } from "tsparticles";
+import type { Engine } from "tsparticles-engine";
+import { useControls, Leva } from "leva";
 
-const heroVariants = {
-  hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0 }
-};
+export default function ParticlesBackground() {
+  const [engineLoaded, setEngineLoaded] = useState(false);
 
-const sectionVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
-};
+  // Live controls for particle physics and colors
+  const {
+    particleCount,
+    particleSpeed,
+    bounce,
+    gravity,
+    minSize,
+    maxSize,
+    hueMin,
+    hueMax,
+    satMin,
+    satMax,
+    lightMin,
+    lightMax
+  } = useControls("Particles", {
+    particleCount: { value: 100, min: 10, max: 500, step: 1 },
+    particleSpeed: { value: 2, min: 0.1, max: 10, step: 0.1 },
+    bounce: { value: 1, min: 0, max: 2, step: 0.1 },
+    gravity: { value: 0, min: 0, max: 1, step: 0.01 },
+    minSize: { value: 2, min: 1, max: 30, step: 1 },
+    maxSize: { value: 6, min: 1, max: 30, step: 1 },
+    hueMin: { value: 0, min: 0, max: 360, step: 1 },
+    hueMax: { value: 360, min: 0, max: 360, step: 1 },
+    satMin: { value: 50, min: 0, max: 100, step: 1 },
+    satMax: { value: 100, min: 0, max: 100, step: 1 },
+    lightMin: { value: 40, min: 0, max: 100, step: 1 },
+    lightMax: { value: 80, min: 0, max: 100, step: 1 }
+  });
 
-export default function Home() {
+  // Initialize tsParticles engine once on mount
+  useEffect(() => {
+    initParticlesEngine(async (engine: Engine) => {
+      await loadFull(engine);
+    }).then(() => setEngineLoaded(true));
+  }, []);
+
+  // Particle configuration bound to controls
+  const options = {
+    fullScreen: { enable: true, zIndex: -1 },
+    background: { color: "#000" },
+    fpsLimit: 60,
+    particles: {
+      number: { value: particleCount, density: { enable: true, area: 800 } },
+      color: {
+        value: {
+          h: { min: hueMin, max: hueMax },
+          s: { min: satMin, max: satMax },
+          l: { min: lightMin, max: lightMax }
+        }
+      },
+      shape: { type: "circle" },
+      opacity: { value: 0.8, random: { enable: true, minimumValue: 0.3 } },
+      size: { value: { min: minSize, max: maxSize }, random: true },
+      move: {
+        enable: true,
+        speed: particleSpeed,
+        direction: "none",
+        random: true,
+        straight: false,
+        outModes: { default: "bounce" },
+        gravity: { enable: gravity > 0, acceleration: gravity }
+      },
+      collisions: { enable: true }
+    },
+    interactivity: {
+      detectsOn: "canvas",
+      events: {
+        onHover: { enable: true, mode: "repulse" },
+        onClick: { enable: true, mode: "push" }
+      },
+      modes: { repulse: { distance: 100, speed: 0.8 }, push: { quantity: 4 } }
+    },
+    detectRetina: true
+  };
+
   return (
-    <>
-      <Head>
-        <title>Cole Corbett | AI & Optimization MSc Student</title>
-        <meta
-          name="description"
-          content="Master’s student in AI & Optimization building scalable, data-driven solutions."
-        />
-      </Head>
+      <>
+        {/* Leva control panel */}
+        <div className="fixed top-4 right-4 z-20 p-2 bg-black/50 rounded">
+          <Leva collapsed={false} />
+        </div>
 
-      <motion.main
-        initial="hidden"
-        animate="visible"
-        className="bg-white text-gray-800"
-      >
-        {/* Hero Section */}
-        <motion.section
-          variants={heroVariants}
-          transition={{ duration: 0.8 }}
-          className="min-h-screen flex flex-col justify-center items-center px-6"
-        >
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-4 text-center">
-            Cole Corbett
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 text-center">
-            AI & Optimization MSc Student
-          </p>
-        </motion.section>
-
-        {/* About Section */}
-        <section className="py-16 px-6 bg-gray-50">
-          <motion.div
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <h2 className="text-3xl font-bold mb-4">About Me</h2>
-            <p className="text-gray-600">
-              I’m Cole Corbett, a Master's student based in Toronto focusing on
-              artificial intelligence and optimization. I design and implement
-              data-driven algorithms to solve complex real-world problems.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* Footer */}
-        <footer className="py-8 text-center text-gray-500 text-sm">
-          &copy; {new Date().getFullYear()} Cole Corbett. All rights reserved.
-        </footer>
-      </motion.main>
-    </>
+        {/* Render particles once engine is ready */}
+        {engineLoaded && <Particles id="tsparticles" options={options} />}
+      </>
   );
 }

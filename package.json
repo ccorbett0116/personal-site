@@ -1,8 +1,13 @@
 {
   "dependencies": {
+    "@tsparticles/engine": "^3.8.1",
+    "@tsparticles/react": "^3.0.0",
+    "leva": "^0.10.0",
     "next": "^15.3.2",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tsparticles": "^3.8.1",
+    "tsparticles-engine": "^2.12.0"
   },
   "scripts": {
     "dev": "next dev",
@@ -12,6 +17,7 @@
   "devDependencies": {
     "@types/node": "22.15.18",
     "@types/react": "19.1.4",
+    "depcheck": "^1.4.7",
     "typescript": "5.8.3"
   }
 }
