@@ -16,7 +16,11 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "baseUrl": ".", // This allows "@" to map to root
+    "paths": {
+      "@/*": ["./*"]
+    },
   },
   "include": [
     "next-env.d.ts",
