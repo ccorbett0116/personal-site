@@ -27,10 +27,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Rewrite if request is to a known subdomain
-  if (subdomain && subdomain in Object.values(REDIRECT_MAP)) {
-    url.pathname = `/${subdomain}${url.pathname}`;
-    return NextResponse.rewrite(url);
-  }
+  if (subdomain && Object.values(REDIRECT_MAP).includes(subdomain)) {
+  url.pathname = `/${subdomain}${url.pathname}`;
+  return NextResponse.rewrite(url);
+}
+
 
   return NextResponse.next();
 }
