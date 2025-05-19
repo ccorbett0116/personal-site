@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl
 
   // Extract subdomain (e.g., 'projects' from 'projects.colecorbett.ca')
-  const subdomain = hostname.endsWith(`.${MAIN_DOMAIN`)
+  const subdomain = hostname.endsWith(`.${MAIN_DOMAIN}`)
     ? hostname.split(`.${MAIN_DOMAIN}`)[0]
     : null
 
