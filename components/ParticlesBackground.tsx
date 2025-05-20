@@ -54,7 +54,7 @@ export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh
                         collisions: {
                             enable: config.enableCollisions,
                             mode: "bounce",
-                            overlap: { enable: false },
+                            overlap: { enable: true },
                             bounce: {
                                 horizontal: { value: config.bounceStrength },
                                 vertical: { value: config.bounceStrength },
@@ -62,7 +62,7 @@ export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh
                         },
                     },
                     interactivity: {
-                        detectsOn: "canvas",
+                        detectsOn: "window",
                         events: {
                             onHover: { enable: true, mode: "repulse" },
                             onClick: { enable: true, mode: "push" },
@@ -75,7 +75,7 @@ export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh
                                 maxSpeed: 60,
                                 easing: "ease-out-quad",
                             },
-                            push: { quantity: 4 },
+                            push: { quantity: 5 },
                         },
                     },
                     detectRetina: true,
