@@ -1,6 +1,5 @@
-// ✅ ParticlesBackground.tsx
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, ReactNode } from "react";
 import { tsParticles } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
 import { ParticleConfig } from "@/types";
@@ -10,9 +9,10 @@ type Props = {
     sidebarOpen: boolean;
     shouldRefresh: boolean;
     onRefreshDone: () => void;
+    children?: ReactNode;
 };
 
-export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh, onRefreshDone }: Props) {
+export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh, onRefreshDone, children }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Load particles once
@@ -137,11 +137,10 @@ export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh
     return (
         <div
             ref={containerRef}
-            className="fixed inset-0 z-[-1]"
-            id="tsparticles-wrapper"
+            className="fixed inset-0 z-[-1] transform-gpu origin-top-left"
         >
-            <div className="fixed inset-0 z-[-2] bg-black" aria-hidden="true" />
-            <div id="tsparticles" />
+            <div id="tsparticles" className="absolute inset-0" />
+            {children}
         </div>
     );
 }
