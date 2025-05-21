@@ -11,7 +11,7 @@ export default function Home() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [shouldRefresh, setShouldRefresh] = useState(false);
 
-    const config: ParticleConfig = {
+    const [config, setConfig] = useState<ParticleConfig>({
         particleCount: 100,
         particleSpeed: 2,
         bounceStrength: 0.5,
@@ -27,7 +27,8 @@ export default function Home() {
         saturationMax: 100,
         lightnessMin: 40,
         lightnessMax: 80,
-    };
+    });
+
 
     return (
         <>
@@ -49,7 +50,10 @@ export default function Home() {
                     config={config}
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
-                    setConfig={(cfg) => { setShouldRefresh(true); }}
+                    setConfig={(cfg) => {
+                        setConfig(cfg);            // <-- Now actually updates config
+                        setShouldRefresh(true);
+                    }}
                 />
             </aside>
         </>
