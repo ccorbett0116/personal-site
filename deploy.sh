@@ -1,5 +1,7 @@
 #!/bin/sh
-set -e  # Exit immediately if a command exits with non-zero status
+set -e
+
+# Configuration
 LOCKFILE="/tmp/deploy.lock"
 LIVE_DIR="/srv/personal-site"
 TMP_DIR="/srv/personal-site-tmp"
@@ -7,106 +9,139 @@ REPO="git@github.com:ccorbett0116/personal-site.git"
 CURRENT_COMMIT_FILE="$LIVE_DIR/.deployed-commit"
 PACKAGE_HASH_FILE="$LIVE_DIR/.package-hash"
 
+# Logging function with timestamps
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# Time tracking
+start_time=$(date +%s)
+
 # Prevent overlapping runs
 if [ -e "$LOCKFILE" ]; then
     if ! pgrep -f deploy.sh > /dev/null; then
-        echo "[DEPLOY] Stale lockfile found — removing."
+        log "Stale lockfile found - removing"
         rm -f "$LOCKFILE"
     else
-        echo "[DEPLOY] Already running, exiting."
+        log "Deployment already running - exiting"
         exit 1
     fi
 fi
-trap 'rm -f "$LOCKFILE"' EXIT
+trap 'rm -f "$LOCKFILE"; log "Lockfile removed"' EXIT
 touch "$LOCKFILE"
 
 mkdir -p /srv
 
-echo "[DEPLOY] Cloning repo to temp dir..."
-rm -rf "$TMP_DIR"
-git clone "$REPO" "$TMP_DIR" || exit 1
-cd "$TMP_DIR" || exit 1
-LATEST_COMMIT=$(git rev-parse HEAD)
+log "Starting deployment process"
 
-# Skip if no changes
+# Clone repository
+log "Cloning repository to temporary directory"
+rm -rf "$TMP_DIR"
+git clone "$REPO" "$TMP_DIR" || { log "Git clone failed"; exit 1; }
+cd "$TMP_DIR" || { log "Failed to enter temp directory"; exit 1; }
+
+LATEST_COMMIT=$(git rev-parse HEAD)
+log "Latest commit: $LATEST_COMMIT"
+
+# Check for changes
 if [ -f "$CURRENT_COMMIT_FILE" ] && [ "$LATEST_COMMIT" = "$(cat "$CURRENT_COMMIT_FILE")" ]; then
-    echo "[DEPLOY] No changes since last deploy ($LATEST_COMMIT). Skipping."
+    log "No changes since last deploy - exiting"
     exit 0
 fi
 
-# Calculate hash of package.json and package-lock.json
+# Dependency management
+log "Checking for dependency changes"
 PACKAGE_HASH=$(md5sum package.json package-lock.json 2>/dev/null | md5sum | cut -d' ' -f1)
-DEPS_CHANGED=0
+echo "$PACKAGE_HASH" > "$TMP_DIR/.package-hash"  # Store new hash immediately
 
-# Check if dependencies have changed or if this is first deploy
-if [ ! -f "$PACKAGE_HASH_FILE" ] || [ "$PACKAGE_HASH" != "$(cat "$PACKAGE_HASH_FILE")" ]; then
-    echo "[DEPLOY] Dependencies changed, will need to update."
-    DEPS_CHANGED=1
+DEPS_CHANGED=1
+if [ -f "$PACKAGE_HASH_FILE" ]; then
+    if [ "$PACKAGE_HASH" = "$(cat "$PACKAGE_HASH_FILE")" ]; then
+        DEPS_CHANGED=0
+        log "Dependencies unchanged - will reuse node_modules"
+    else
+        log "Dependencies changed - will update"
+    fi
 else
-    echo "[DEPLOY] Dependencies unchanged, will reuse node_modules."
+    log "No previous package hash found - fresh install required"
 fi
 
-# Properly reuse node_modules if available and dependencies haven't changed
+# Reuse node_modules if possible
 if [ -d "$LIVE_DIR/node_modules" ] && [ "$DEPS_CHANGED" -eq 0 ]; then
-    echo "[DEPLOY] Copying existing node_modules..."
+    log "Copying existing node_modules"
     mkdir -p "$TMP_DIR/node_modules"
     cp -al "$LIVE_DIR/node_modules/." "$TMP_DIR/node_modules/"
 fi
 
-# Only install dependencies if they've changed
+# Install dependencies if needed
 if [ "$DEPS_CHANGED" -eq 1 ]; then
-    echo "[DEPLOY] Installing dependencies using npm ci..."
-    if npm ci --prefer-offline --no-audit; then
-        echo "[DEPLOY] Dependencies installed successfully."
-    else
-        echo "[DEPLOY] npm ci failed, attempting fallback with npm install..."
-        npm install || exit 1
-    fi
+    log "Installing dependencies"
+    INSTALL_START=$(date +%s)
     
-    # Store new package hash for future reference
-    echo "$PACKAGE_HASH" > "$TMP_DIR/.package-hash"
+    if npm ci --prefer-offline --no-audit; then
+        INSTALL_TIME=$(( $(date +%s) - $INSTALL_START ))
+        log "Dependencies installed successfully in ${INSTALL_TIME}s"
+    else
+        log "npm ci failed - attempting fallback with npm install"
+        npm install || { log "Dependency installation failed"; exit 1; }
+        INSTALL_TIME=$(( $(date +%s) - $INSTALL_START ))
+        log "Fallback installation completed in ${INSTALL_TIME}s"
+    fi
 fi
 
-echo "[DEPLOY] Building project..."
-npm run build || exit 1
+# Build project
+log "Building project"
+BUILD_START=$(date +%s)
+npm run build || { log "Build failed"; exit 1; }
+BUILD_TIME=$(( $(date +%s) - $BUILD_START ))
+log "Build completed in ${BUILD_TIME}s"
 
-echo "[DEPLOY] Preparing to swap into live directory..."
-# Create live directory if it doesn't exist
-if [ ! -d "$LIVE_DIR" ]; then
-    mkdir -p "$LIVE_DIR"
-fi
+# Deploy to live directory
+log "Preparing live directory"
+mkdir -p "$LIVE_DIR"
 
-# Move the built project to live directory with rsync
-# Keep node_modules from being deleted
-echo "[DEPLOY] Syncing to live directory..."
+log "Syncing files to live directory"
+RSYNC_START=$(date +%s)
 rsync -a --delete --exclude='node_modules' "$TMP_DIR/" "$LIVE_DIR/"
+RSYNC_TIME=$(( $(date +%s) - $RSYNC_START ))
+log "File sync completed in ${RSYNC_TIME}s"
 
-# Handle node_modules separately if dependencies changed
+# Update node_modules if needed
 if [ "$DEPS_CHANGED" -eq 1 ]; then
-    echo "[DEPLOY] Updating live node_modules..."
-    # Save and restore any .bin symlinks that might get corrupted on partial copy
+    log "Updating live node_modules"
+    MODULES_START=$(date +%s)
+    
     if [ -d "$LIVE_DIR/node_modules/.bin" ]; then
         rm -rf "$LIVE_DIR/node_modules/.bin"
     fi
     
-    # Use rsync for node_modules to efficiently copy only changed files
     rsync -a "$TMP_DIR/node_modules/" "$LIVE_DIR/node_modules/"
-    
-    # Copy the new package hash file
     cp "$TMP_DIR/.package-hash" "$PACKAGE_HASH_FILE"
+    
+    MODULES_TIME=$(( $(date +%s) - $MODULES_START ))
+    log "node_modules updated in ${MODULES_TIME}s"
 fi
 
-# Record the deployed commit
+# Update deployed commit
 echo "$LATEST_COMMIT" > "$CURRENT_COMMIT_FILE"
+log "Deployed commit updated to $LATEST_COMMIT"
 
-echo "[DEPLOY] Reloading PM2..."
+# PM2 process management
+log "Managing PM2 process"
 cd "$LIVE_DIR"
 if pm2 list | grep -q "personal-site"; then
+    log "Reloading existing PM2 process"
     pm2 reload personal-site
 else
+    log "Starting new PM2 process"
     pm2 start npm --name personal-site -- start
 fi
 
-echo "[DEPLOY] Cleanup..."
+# Cleanup
+log "Cleaning up temporary files"
 rm -rf "$TMP_DIR"
-echo "[DEPLOY] ✅ Done"
+
+# Final stats
+end_time=$(date +%s)
+total_time=$(( end_time - start_time ))
+log "✅ Deployment completed successfully in ${total_time} seconds"
