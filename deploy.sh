@@ -6,6 +6,10 @@ log_time() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [DEPLOY] $1"
 }
 
+# Ensure we have a clear environment
+unset NODE_ENV
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
 LOCKFILE="/tmp/deploy.lock"
 LIVE_DIR="/srv/personal-site"
 TMP_DIR="/srv/personal-site-tmp"
@@ -32,10 +36,14 @@ mkdir -p /srv
 
 log_time "Cloning repo to temp dir..."
 rm -rf "$TMP_DIR"
-git clone "$REPO" "$TMP_DIR" || exit 1
+# More explicit git clone command
+/usr/bin/git clone "$REPO" "$TMP_DIR" || {
+    log_time "Git clone failed with status $?"
+    exit 1
+}
 cd "$TMP_DIR" || exit 1
 
-LATEST_COMMIT=$(git rev-parse HEAD)
+LATEST_COMMIT=$(/usr/bin/git rev-parse HEAD)
 log_time "Repository cloned. Commit: $LATEST_COMMIT"
 
 # Skip if no changes
@@ -65,18 +73,21 @@ fi
 if [ "$DEPS_CHANGED" -eq 1 ]; then
     log_time "Dependencies changed. Installing using npm ci..."
     time_start=$(date +%s)
-    if npm ci --prefer-offline --no-audit; then
-        time_end=$(date +%s)
-        time_taken=$((time_end - time_start))
-        log_time "Dependencies installed successfully in $time_taken seconds."
+    # Use the full path to npm if available
+    if [ -x "/usr/local/bin/npm" ]; then
+        /usr/local/bin/npm ci --prefer-offline --no-audit || {
+            log_time "npm ci failed, attempting fallback with npm install..."
+            /usr/local/bin/npm install || exit 1
+        }
     else
-        log_time "npm ci failed, attempting fallback with npm install..."
-        time_start=$(date +%s)
-        npm install || exit 1
-        time_end=$(date +%s)
-        time_taken=$((time_end - time_start))
-        log_time "Dependencies installed with npm install in $time_taken seconds."
+        npm ci --prefer-offline --no-audit || {
+            log_time "npm ci failed, attempting fallback with npm install..."
+            npm install || exit 1
+        }
     fi
+    time_end=$(date +%s)
+    time_taken=$((time_end - time_start))
+    log_time "Dependencies installed successfully in $time_taken seconds."
     
     # Store package hash for future reference
     echo "$PACKAGE_HASH" > "$TMP_DIR/.package-hash"
@@ -84,7 +95,12 @@ fi
 
 log_time "Building project..."
 time_start=$(date +%s)
-npm run build || exit 1
+# Use the full path to npm if available, otherwise rely on PATH
+if [ -x "/usr/local/bin/npm" ]; then
+    /usr/local/bin/npm run build || exit 1
+else
+    npm run build || exit 1
+fi
 time_end=$(date +%s)
 time_taken=$((time_end - time_start))
 log_time "Build completed in $time_taken seconds."
@@ -120,10 +136,19 @@ echo "$LATEST_COMMIT" > "$CURRENT_COMMIT_FILE"
 log_time "Reloading PM2..."
 cd "$LIVE_DIR"
 time_start=$(date +%s)
-if pm2 list | grep -q "personal-site"; then
-    pm2 reload personal-site
+# Use the full path to pm2 if available
+if [ -x "/usr/local/bin/pm2" ]; then
+    if /usr/local/bin/pm2 list | grep -q "personal-site"; then
+        /usr/local/bin/pm2 reload personal-site
+    else
+        /usr/local/bin/pm2 start npm --name personal-site -- start
+    fi
 else
-    pm2 start npm --name personal-site -- start
+    if pm2 list | grep -q "personal-site"; then
+        pm2 reload personal-site
+    else
+        pm2 start npm --name personal-site -- start
+    fi
 fi
 time_end=$(date +%s)
 time_taken=$((time_end - time_start))
