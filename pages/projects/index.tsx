@@ -3,7 +3,7 @@ export default function ProjectsPage() {
     <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>Projects Subdomain</h1>
       <p>This is served at https://projects.colecorbett.ca</p>
-      <p>Time me</p>    
+      <p>Time me!</p>    
     </main>
   )
 }
