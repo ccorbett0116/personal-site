@@ -12,6 +12,7 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [DEPLOY] $1"
 }
 
+
 # Prevent overlapping runs
 if [ -e "$LOCKFILE" ]; then
     if ! pgrep -f deploy.sh > /dev/null; then
