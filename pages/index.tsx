@@ -39,7 +39,7 @@ export default function Home() {
                 shouldRefresh={shouldRefresh}
                 onRefreshDone={() => setShouldRefresh(false)}
             >
-                <div className="relative z-10 flex flex-col items-center justify-center h-dvh space-y-6 px-4 text-center">
+                <div className="relative z-10 flex flex-col items-center justify-center h-[100dvh] space-y-6 px-4 text-center">
                     <h1 className="text-white text-6xl font-bold">Cole Corbett</h1>
                 </div>
             </ParticlesBackground>
