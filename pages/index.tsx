@@ -5,8 +5,6 @@ import ParticlesBackground from "@/components/ParticlesBackground";
 import Sidebar from "@/components/Sidebar";
 import { ParticleConfig } from "@/types";
 
-// Example additional components to demonstrate squish
-
 export default function Home() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [shouldRefresh, setShouldRefresh] = useState(false);
@@ -29,7 +27,6 @@ export default function Home() {
         lightnessMax: 80,
     });
 
-
     return (
         <>
             {/* Background & squishable content */}
@@ -39,8 +36,11 @@ export default function Home() {
                 shouldRefresh={shouldRefresh}
                 onRefreshDone={() => setShouldRefresh(false)}
             >
-                <div className="relative z-10 flex flex-col items-center justify-center min-h-screen space-y-6">
-                    <h1 className="text-white text-6xl font-bold">Cole Corbett</h1>
+                {/* Use fixed positioning with flexbox - works on Samsung browser */}
+                <div className="fixed inset-0 z-10 flex items-center justify-center px-4">
+                    <h1 className="text-white text-6xl font-bold text-center w-4/5">
+                        Cole Corbett
+                    </h1>
                 </div>
             </ParticlesBackground>
 
@@ -51,7 +51,7 @@ export default function Home() {
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
                     setConfig={(cfg) => {
-                        setConfig(cfg);            // <-- Now actually updates config
+                        setConfig(cfg);
                         setShouldRefresh(true);
                     }}
                 />
