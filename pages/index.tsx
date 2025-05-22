@@ -1,9 +1,11 @@
-// pages/index.tsx - Updated centering solution
+// pages/index.tsx
 "use client";
 import { useState } from "react";
 import ParticlesBackground from "@/components/ParticlesBackground";
 import Sidebar from "@/components/Sidebar";
 import { ParticleConfig } from "@/types";
+
+// Example additional components to demonstrate squish
 
 export default function Home() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +29,7 @@ export default function Home() {
         lightnessMax: 80,
     });
 
+
     return (
         <>
             {/* Background & squishable content */}
@@ -36,20 +39,8 @@ export default function Home() {
                 shouldRefresh={shouldRefresh}
                 onRefreshDone={() => setShouldRefresh(false)}
             >
-                {/* Multiple centering approaches for Samsung browser compatibility */}
-                <div className="relative z-10 min-h-screen w-full flex items-center justify-center px-4">
-                    <div className="text-center">
-                        <h1
-                            className="text-white text-6xl font-bold"
-                            style={{
-                                position: 'relative',
-                                left: '50%',
-                                transform: 'translateX(-50%)'
-                            }}
-                        >
-                            Cole Corbett
-                        </h1>
-                    </div>
+                <div className="relative z-10 flex flex-col items-center justify-center min-h-screen space-y-6">
+                    <h1 className="text-white text-6xl font-bold">Cole Corbett</h1>
                 </div>
             </ParticlesBackground>
 
@@ -60,7 +51,7 @@ export default function Home() {
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
                     setConfig={(cfg) => {
-                        setConfig(cfg);
+                        setConfig(cfg);            // <-- Now actually updates config
                         setShouldRefresh(true);
                     }}
                 />
