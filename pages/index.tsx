@@ -10,14 +10,14 @@ export default function Home() {
     const [shouldRefresh, setShouldRefresh] = useState(false);
 
     const [config, setConfig] = useState<ParticleConfig>({
-        particleCount: 100,
+        particleCount: 50,
         particleSpeed: 2,
         bounceStrength: 0.5,
         enableCollisions: true,
         gravity: 0,
         minSize: 1,
         maxSize: 3,
-        repulsionStrength: 100,
+        repulsionStrength: 50,
         repulsionSpeed: 0.5,
         hueMin: 0,
         hueMax: 360,
@@ -25,6 +25,7 @@ export default function Home() {
         saturationMax: 100,
         lightnessMin: 40,
         lightnessMax: 80,
+        enableRepulsion: true,
     });
 
     return (

@@ -81,6 +81,34 @@ export default function Sidebar({ config, setConfig, sidebarOpen, setSidebarOpen
                             </label>
                         </div>
 
+                        <div className="space-y-2">
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={pendingConfig.enableRepulsion}
+                                    onChange={e => updatePending("enableRepulsion", e.target.checked)}
+                                />
+                                <span>Enable Repulsion</span>
+                            </label>
+
+                            {pendingConfig.enableRepulsion && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Repulsion Strength ({pendingConfig.repulsionStrength})
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="500"
+                                        step="10"
+                                        value={pendingConfig.repulsionStrength}
+                                        onChange={e => updatePending("repulsionStrength", +e.target.value)}
+                                        className="w-full"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
                         {/* Apply Button */}
                         <div>
                             <button

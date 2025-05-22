@@ -64,17 +64,22 @@ export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh
                     interactivity: {
                         detectsOn: "window",
                         events: {
-                            onHover: { enable: true, mode: "repulse" },
+                            onHover: {
+                                enable: config.enableRepulsion,
+                                mode: config.enableRepulsion ? "repulse" : undefined,
+                            },
                             onClick: { enable: true, mode: "push" },
                         },
                         modes: {
-                            repulse: {
-                                distance: 100,
-                                speed: config.repulsionSpeed,
-                                factor: config.repulsionStrength,
-                                maxSpeed: 60,
-                                easing: "ease-out-quad",
-                            },
+                            repulse: config.enableRepulsion
+                                ? {
+                                    distance: 100,
+                                    speed: config.repulsionSpeed,
+                                    factor: config.repulsionStrength,
+                                    maxSpeed: 60,
+                                    easing: "ease-out-quad",
+                                }
+                                : {},
                             push: { quantity: 5 },
                         },
                     },
@@ -125,8 +130,15 @@ export default function ParticlesBackground({ config, sidebarOpen, shouldRefresh
             factor: number;
         };
 
-        repulse.speed = config.repulsionSpeed;
-        repulse.factor = config.repulsionStrength;
+        if (config.enableRepulsion) {
+            repulse.speed = config.repulsionSpeed;
+            repulse.factor = config.repulsionStrength;
+        } else {
+            // @ts-ignore
+            repulse.speed = 0;
+            // @ts-ignore
+            repulse.factor = 0;
+        }
 
 
 
