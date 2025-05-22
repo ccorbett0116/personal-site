@@ -15,4 +15,5 @@ export type ParticleConfig = {
     saturationMax: number;
     lightnessMin: number;
     lightnessMax: number;
+    enableRepulsion: boolean;
 };
