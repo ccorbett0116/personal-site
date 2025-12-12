@@ -1,4 +1,4 @@
 add-subdomain.sh
 update-github-webhook-ips.sh
 update-cloudflare-realip.sh
-
+.idea/
